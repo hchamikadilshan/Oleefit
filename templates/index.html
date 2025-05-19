@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="text-center mt-5">
+  <h1 class="display-4">Welcome to OleeFit Exercise Assistant</h1>
+  <p class="lead mt-3">
+    Get instant, AI-powered exercise advice. Ask anything like:
+    <em>“What are good beginner ab workouts?”</em> or
+    <em>“Suggest back exercises using dumbbells.”</em>
+  </p>
+
+  <form id="queryForm" method="POST" class="d-flex justify-content-center mt-4">
+    <input type="text" id="queryInput" name="query" class="form-control w-50 me-2"
+           placeholder="Ask about exercises, muscle groups, equipment..." required>
+    <button type="submit" class="btn btn-success">Get Recommendation</button>
+  </form>
+
+  {% if query %}
+  <div class="mt-4 text-muted">
+    <strong>Your Question:</strong> {{ query }}
+  </div>
+  {% endif %}
+
+  {% if response %}
+  <div class="mt-5 p-4 bg-light border rounded text-start">
+    <h5>AI Recommendation:</h5>
+    <p>{{ response }}</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
