@@ -1,6 +1,7 @@
 from flask import Flask,render_template, request,jsonify,redirect,flash,url_for
 import os
 import pandas as pd
+import json
 
 from utils.processing_csv import process_info_csv
 from utils.llm import general_query_llm
@@ -28,10 +29,23 @@ def ask():
     if not user_query.strip():
         return jsonify({"response": "Please enter a valid question."})
     
-    response = general_query_llm(user_query, api_key)
+    json_output = general_query_llm(user_query, api_key)
+
+    try:
+        parsed = json.loads(json_output)
+        if parsed["fitness_related"]:
+            if parsed["exp_level"] == "None":
+                # Ask for level
+                return jsonify({"response": parsed["response"]})
+            else:
+                pass
+        else:
+            return jsonify({"response": parsed["response"]})
+    except Exception as e:
+        print("Failed to parse:", e)
+        return jsonify({"response": "Sorry, something went wrong. Please try again."})
 
 
-    return jsonify({"response": response})
 
 @app.route("/upload", methods=["GET", "POST"])
 def upload():
