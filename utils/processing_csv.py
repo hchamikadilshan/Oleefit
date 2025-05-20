@@ -14,6 +14,8 @@ os.makedirs(VECTOR_STORE_DIR, exist_ok=True)
 INDEX_PATH = os.path.join(VECTOR_STORE_DIR, "faiss_index.index")
 METADATA_PATH = os.path.join(VECTOR_STORE_DIR, "chunk_metadata.json")
 
+model = SentenceTransformer('all-MiniLM-L6-v2')
+
 # ───── Helpers ─────
 def clean_sentences(text):
     text = re.sub(r'\s+', ' ', text)
@@ -48,8 +50,8 @@ def generate_meta_data(df):
     return metadata_list
 
 # ───── Step 2: Generate Embeddings and Save ─────
-def store_embeddings_with_metadata(metadata_list, model_name='all-MiniLM-L6-v2', output_dir=VECTOR_STORE_DIR):
-    model = SentenceTransformer(model_name)
+def store_embeddings_with_metadata(metadata_list, output_dir=VECTOR_STORE_DIR):
+    
 
     texts = [meta['text'] for meta in metadata_list]
 
