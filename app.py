@@ -1,4 +1,4 @@
-from flask import Flask,render_template, request,jsonify,redirect,flash,url_for
+from flask import Flask,render_template, request,jsonify,redirect,flash,url_for,session
 import os
 import pandas as pd
 import json
@@ -26,24 +26,45 @@ def ask():
 
     print(user_query)
 
+    # Initialize session memory if not exists
+    if "chat_history" not in session:
+        session["chat_history"] = []
+
     if not user_query.strip():
         return jsonify({"response": "Please enter a valid question."})
-    
-    json_output = general_query_llm(user_query, api_key)
+
+    # Add user message to history
+    session["chat_history"].append({"role": "user", "content": user_query})
+
+    json_output = general_query_llm(user_query, api_key, session["chat_history"])
 
     try:
         parsed = json.loads(json_output)
+
         if parsed["fitness_related"]:
             if parsed["exp_level"] == "None":
-                # Ask for level
+                session["chat_history"].append({"role": "assistant", "content": parsed["response"]})
+                session.modified = True  # ✅ important here
                 return jsonify({"response": parsed["response"]})
             else:
+                # ✅ If routing to fitness LLM, you still need to save history
+                session["chat_history"].append({"role": "assistant", "content": parsed["response"]})
+                session.modified = True
                 pass
+                return
         else:
+            session["chat_history"].append({"role": "assistant", "content": parsed["response"]})
+            session.modified = True  # ✅ important here too
             return jsonify({"response": parsed["response"]})
+
     except Exception as e:
         print("Failed to parse:", e)
-        return jsonify({"response": "Sorry, something went wrong. Please try again."})
+        # You should log something fallback-safe here, not parsed["response"] since it may not exist
+        error_response = "Sorry, something went wrong. Please try again."
+        session["chat_history"].append({"role": "assistant", "content": error_response})
+        session.modified = True  # ✅ still important
+        return jsonify({"response": error_response})
+
 
 
 
