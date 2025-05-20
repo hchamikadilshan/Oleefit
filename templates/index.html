@@ -3,57 +3,66 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<div class="text-center mt-5">
-  <h1 class="display-4">Welcome to OleeFit Exercise Assistant</h1>
-  <p class="lead mt-3">
-    Ask exercise-related questions like:
-    <em>“What are good beginner ab workouts?”</em> or
-    <em>“Suggest back exercises using dumbbells.”</em>
-  </p>
+<div class="container mt-5" style="max-width: 700px;">
+  <h2 class="text-center mb-4">💬 OleeFit Exercise Chat Assistant</h2>
 
-  <form id="queryForm" class="d-flex justify-content-center mt-4">
-    <input type="text" id="queryInput" class="form-control w-50 me-2"
+  <div id="chatBox" class="border rounded p-3 bg-light" style="height: 400px; overflow-y: auto;">
+    <!-- Messages will be appended here -->
+  </div>
+
+  <form id="queryForm" class="d-flex mt-3">
+    <input type="text" id="queryInput" class="form-control me-2"
            placeholder="Ask about exercises, muscle groups, equipment..." required>
-    <button type="submit" class="btn btn-success">Get Recommendation</button>
+    <button type="submit" class="btn btn-success">Send</button>
   </form>
 
-  <div id="loading" class="mt-3 text-muted" style="display: none;">Processing...</div>
-
-  <div id="responseBox" class="mt-5 p-4 bg-light border rounded text-start" style="display: none;">
-    <h5>AI Recommendation:</h5>
-    <p id="responseText"></p>
-  </div>
+  <div id="loading" class="mt-2 text-muted" style="display: none;">Processing...</div>
 </div>
 
 <script>
-document.getElementById("queryForm").addEventListener("submit", function(event) {
-    event.preventDefault();
+const chatBox = document.getElementById("chatBox");
+const queryForm = document.getElementById("queryForm");
+const queryInput = document.getElementById("queryInput");
+const loading = document.getElementById("loading");
 
-    const query = document.getElementById("queryInput").value;
-    const loading = document.getElementById("loading");
-    const responseBox = document.getElementById("responseBox");
-    const responseText = document.getElementById("responseText");
+function appendMessage(sender, message) {
+  const div = document.createElement("div");
+  div.classList.add("mb-2");
 
-    loading.style.display = "block";
-    responseBox.style.display = "none";
+  if (sender === "user") {
+    div.innerHTML = `<div class="text-end"><strong>You:</strong> ${message}</div>`;
+  } else {
+    div.innerHTML = `<div class="text-start"><strong>OleeFit:</strong> ${message}</div>`;
+  }
 
-    fetch("/ask", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ query: query })
-    })
-    .then(response => response.json())
-    .then(data => {
-        loading.style.display = "none";
-        responseText.textContent = data.response;
-        responseBox.style.display = "block";
-    })
-    .catch(error => {
-        loading.textContent = "An error occurred.";
-        console.error("Error:", error);
-    });
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+queryForm.addEventListener("submit", function(event) {
+  event.preventDefault();
+
+  const query = queryInput.value.trim();
+  if (!query) return;
+
+  appendMessage("user", query);
+  queryInput.value = "";
+  loading.style.display = "block";
+
+  fetch("/ask", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query: query })
+  })
+  .then(response => response.json())
+  .then(data => {
+    loading.style.display = "none";
+    appendMessage("bot", data.response);
+  })
+  .catch(error => {
+    loading.textContent = "An error occurred.";
+    console.error("Error:", error);
+  });
 });
 </script>
 {% endblock %}

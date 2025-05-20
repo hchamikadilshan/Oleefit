@@ -3,12 +3,15 @@ import os
 import pandas as pd
 
 from utils.processing_csv import process_info_csv
+from utils.llm import general_query_llm
 
 app = Flask(__name__)
 app.secret_key = "olee1234"  
 
 UPLOAD_FOLDER = "exercise_info_folder"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+api_key = "0177126f09f9b3897b18fce813639930f8ed8aa39765677036d8edd53ebbd3a5"
 
 # ───── Routes ─────
 @app.route("/", methods=["GET"])
@@ -24,9 +27,11 @@ def ask():
 
     if not user_query.strip():
         return jsonify({"response": "Please enter a valid question."})
+    
+    response = general_query_llm(user_query, api_key)
 
 
-    return 
+    return jsonify({"response": response})
 
 @app.route("/upload", methods=["GET", "POST"])
 def upload():
